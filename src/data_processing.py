@@ -1,142 +1,3 @@
-# import os
-# import re
-# import json
-# import fitz
-# import pdfplumber
-# import pytesseract
-# from PIL import Image
-# import io
-# from langchain_community.document_loaders import PyPDFLoader
-# from langchain_text_splitters import RecursiveCharacterTextSplitter
-# from langchain.schema.document import Document
-# from config import config
-
-# class PDFProcessor:
-#     def __init__(self, pdf_path):
-#         self.pdf_path = pdf_path
-#         self.text = ""
-#         self.tables = []
-#         self.images = []
-#         self.formulas = []
-#         self.metadata = {}
-#         self.page_contents = {}
-
-#     def extract_text(self):
-#         """Extract text with page numbers and section headings."""
-#         with fitz.open(self.pdf_path) as doc:
-#             for page_num, page in enumerate(doc):
-#                 page_text = page.get_text("text").strip()
-#                 if page_text:
-#                     sections = re.findall(r'^\s*(\d+\.\s+.+)$', page_text, re.MULTILINE)
-#                     header = f"Page {page_num+1}" + (f" - Sections: {', '.join(sections)}" if sections else "")
-#                     self.page_contents[page_num] = f"{header}\n{page_text}"
-#             self.text = "\n".join(self.page_contents.values())
-
-#     def extract_tables(self):
-#         """Extract tables with page numbers."""
-#         with pdfplumber.open(self.pdf_path) as pdf:
-#             for page_num, page in enumerate(pdf.pages):
-#                 tables = page.extract_tables()
-#                 for table_idx, table in enumerate(tables):
-#                     cleaned_table = [row for row in table if any(cell for cell in row if cell)]
-#                     if cleaned_table:
-#                         table_text = "\n".join(" ".join(str(cell or "") for cell in row) for row in cleaned_table)
-#                         self.tables.append({"page": page_num, "table_id": table_idx, "content": table_text})
-
-#     def extract_images_and_formulas(self):
-#         """Extract images and detect formulas."""
-#         formula_patterns = [
-#             r'[=\+\-][^=\+\-\w\s]+[=\+\-]', r'[\(\)]{2,}', r'[∑∫∂√∆∇∏πα-ωΑ-Ω]',
-#             r'\$.*?\$', r'\\begin\{equation\}.*?\\end\{equation\}'
-#         ]
-#         with fitz.open(self.pdf_path) as doc:
-#             for page_num, page in enumerate(doc):
-#                 for img in page.get_images(full=True):
-#                     xref = img[0]
-#                     image = Image.open(io.BytesIO(doc.extract_image(xref)["image"]))
-#                     text = pytesseract.image_to_string(image)
-#                     if any(re.search(pattern, text) for pattern in formula_patterns):
-#                         self.formulas.append({"page": page_num, "text": text, "location": "image"})
-#                     else:
-#                         self.images.append({"page": page_num, "text": text})
-#                 page_text = page.get_text("text")
-#                 for pattern in formula_patterns:
-#                     for formula in re.findall(pattern, page_text, re.DOTALL):
-#                         if len(formula) > 3:
-#                             self.formulas.append({"page": page_num, "text": formula, "location": "text"})
-
-#     def extract_metadata(self):
-#         """Extract metadata with abstract and keywords."""
-#         with fitz.open(self.pdf_path) as doc:
-#             self.metadata = {k: doc.metadata.get(k, "Unknown") for k in ["title", "author", "creationDate", "modDate"]}
-#             self.metadata["page_count"] = doc.page_count
-#             first_page = doc[0].get_text("text")
-#             abstract_match = re.search(r'(?i)abstract\s*(.+?)\s*(?:keywords|introduction|1\.)', first_page, re.DOTALL)
-#             if abstract_match:
-#                 self.metadata["abstract"] = abstract_match.group(1).strip()
-#             keywords_match = re.search(r'(?i)keywords\s*:?\s*(.+?)\s*(?:introduction|1\.)', first_page, re.DOTALL)
-#             if keywords_match:
-#                 self.metadata["keywords"] = keywords_match.group(1).strip()
-
-#     def process_pdf(self):
-#         """Run all extraction methods and return structured data."""
-#         self.extract_text()
-#         self.extract_tables()
-#         self.extract_images_and_formulas()
-#         self.extract_metadata()
-#         return {
-#             "text": self.text,
-#             "tables": [table["content"] for table in self.tables],
-#             "images": self.images,
-#             "formulas": self.formulas,
-#             "metadata": self.metadata,
-#             "page_contents": self.page_contents
-#         }
-
-# def load_documents():
-#     """Load PDF documents using PyPDFLoader."""
-#     loader = PyPDFLoader(config.DATA_PATH)
-#     return loader.load()
-
-# def split_documents(documents: list[Document]):
-#     """Split documents into chunks."""
-#     text_splitter = RecursiveCharacterTextSplitter(
-#         chunk_size=config.CHUNK_SIZE,
-#         chunk_overlap=config.CHUNK_OVERLAP,
-#         length_function=len,
-#         is_separator_regex=False,
-#     )
-#     return text_splitter.split_documents(documents)
-
-# def calculate_chunk_metadata(chunks: list[Document]):
-#     """Assign chunk IDs and section metadata."""
-#     section_markers = {
-#         "Abstract": "abstract", "Introduction": "introduction", "Methods": "methods",
-#         "Results": "results", "Discussion": "discussion", "References": "references",
-#         "Broader Impact": "broader_impact", "Appendices": "appendices"
-#     }
-#     last_page_id = None
-#     current_chunk_index = 0
-#     current_section = "other"
-
-#     for chunk in chunks:
-#         source = chunk.metadata.get("source", config.DATA_PATH)
-#         page = chunk.metadata.get("page", 0)
-#         current_page_id = f"{source}:{page}"
-#         current_chunk_index = current_chunk_index + 1 if current_page_id == last_page_id else 0
-#         chunk.metadata["id"] = f"{current_page_id}:{current_chunk_index}"
-#         last_page_id = current_page_id
-
-#         content = chunk.page_content
-#         for marker, section in section_markers.items():
-#             if marker in content:
-#                 current_section = section
-#                 break
-#         chunk.metadata["section"] = current_section
-#     return chunks
-
-
-
 import os
 import re
 import json
@@ -167,17 +28,6 @@ class PDFProcessor:
         self.page_contents = {}
         self.page_table_captions = {}
 
-    # def extract_text(self):
-    #     """Extract text with page numbers and section headings."""
-    #     with fitz.open(self.pdf_path) as doc:
-    #         for page_num, page in enumerate(doc):
-    #             page_text = page.get_text("text").strip()
-    #             if page_text:
-    #                 sections = re.findall(r'^\s*(\d+\.\d*\s+.+)$', page_text, re.MULTILINE)  # Enhanced to catch subsections
-    #                 header = f"Page {page_num+1}" + (f" - Sections: {', '.join(sections)}" if sections else "")
-    #                 self.page_contents[page_num] = f"{header}\n{page_text}"
-    #         self.text = "\n".join(self.page_contents.values())
-
     def extract_text(self):
         """Extract text and table captions."""
         table_caption_pattern = r'(Table\s+\d+[\s:].*?)(?=\n\s*\d+\.|\Z)'  # Matches "Table X: Description"
@@ -195,57 +45,6 @@ class PDFProcessor:
                     self.page_table_captions[page_num] = [cap.strip() for cap in captions]
 
         self.text = "\n".join(self.page_contents.values())
-
-
-    # def extract_tables(self):
-    #     """Extract tables from the PDF using TableExtractor and OcrTableExtractor."""
-    #     # Step 1: Extract table images
-    #     table_extractor = TableExtractor(self.pdf_path, output_dir="D:/rag-chatbot/data")
-    #     table_extractor.run()
-
-    #     # Step 2: Process table images with OCR
-    #     ocr_extractor = OcrTableExtractor(
-    #         image_dir=table_extractor.table_output_dir,
-    #         output_dir="D:/rag-chatbot/data/output"
-    #     )
-    #     ocr_extractor.process_all_tables()
-
-    #     # Step 3: Collect extracted tables from CSVs
-    #     self.tables = []
-    #     output_dir = ocr_extractor.output_dir
-    #     for csv_file in os.listdir(output_dir):
-    #         if csv_file.endswith("_extracted.csv"):
-    #             csv_path = os.path.join(output_dir, csv_file)
-    #             try:
-    #                 # Extract page and table numbers from filename
-    #                 match = re.search(r'page_(\d+)_table_(\d+)_', csv_file)
-    #                 if match:
-    #                     page_num = int(match.group(1)) - 1  # Convert to 0-based index
-    #                     table_num = int(match.group(2)) - 1  # Convert to 0-based index
-                        
-    #                     # Get captions for the page
-    #                     captions = self.page_table_captions.get(page_num, [])
-    #                     caption = (
-    #                         captions[table_num] 
-    #                         if table_num < len(captions) 
-    #                         else f"Table {table_num + 1}"
-    #                     )
-    #                 else:
-    #                     caption = "Unnamed Table"
-
-    #                 # Read table content
-    #                 df = pd.read_csv(csv_path, header=None)
-    #                 table_content = df.to_string(index=False)
-                    
-    #                 # Append with metadata
-    #                 self.tables.append({
-    #                     "page": page_num,
-    #                     "table_id": table_num + 1,  # 1-based for user-facing
-    #                     "caption": caption,
-    #                     "content": table_content
-    #                 })
-    #             except Exception as e:
-    #                 print(f"Error reading table from {csv_path}: {e}")
 
     def extract_tables(self):
         """Extract tables from the PDF using TableExtractor and OcrTableExtractor."""
@@ -424,7 +223,6 @@ def split_documents(documents: list[Document]):
     processor = PDFProcessor(config.DATA_PATH)
     processed_data = processor.process_pdf()
     for table in processed_data["tables"]:
-        # final_chunks.append(Document(page_content=table, metadata={"page": -1, "type": "table"}))
         final_chunks.append(Document(page_content=f"Table {table['id']} - {table['caption']}\n{table['content']}",metadata={"page": -1, "type": "table"}))
     for formula in processed_data["formulas"]:
         final_chunks.append(Document(page_content=formula["text"], metadata={"page": formula["page"], "type": "formula"}))
@@ -461,7 +259,6 @@ def calculate_chunk_metadata(chunks: list[Document]):
 if __name__ == "__main__":
     processor = PDFProcessor(config.DATA_PATH)
     result = processor.process_pdf()
-    # print(json.dumps(result, indent=2, default=str))
 
     # Define output file path
     output_json_path = os.path.join("D:/rag-chatbot/data", "extracted_data.json")  
