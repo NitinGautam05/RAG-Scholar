@@ -4,12 +4,12 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    """Configuration settings for the RAG chatbot."""
+    
     # API Keys and paths
     HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACEHUB_ACCESS_TOKEN")
     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
     CHROMADB_PATH = os.getenv("CHROMADB_PATH", "D:/rag-chatbot/DB/chromadb")
-    DATA_PATH = os.getenv("DATA_PATH", "D:/rag-chatbot/data/attention is all you need.pdf")
+    DATA_PATH = os.getenv("DATA_PATH", "D:/rag-chatbot/data/CAG.pdf")
 
     # Embedding and chunking settings
     EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"

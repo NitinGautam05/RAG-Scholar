@@ -21,3 +21,4 @@ scikit-learn
 
 langchain-chroma
 pdfplumber
+pytesseract

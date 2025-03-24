@@ -150,7 +150,11 @@ from langchain.schema.document import Document
 from langchain_huggingface import HuggingFaceEmbeddings
 from config import config
 import numpy as np
+import pandas as pd
 from sklearn.cluster import DBSCAN
+import camelot
+from OcrToTableTool import OcrTableExtractor
+from table import TableExtractor
 
 class PDFProcessor:
     def __init__(self, pdf_path):
@@ -161,28 +165,141 @@ class PDFProcessor:
         self.formulas = []
         self.metadata = {}
         self.page_contents = {}
+        self.page_table_captions = {}
+
+    # def extract_text(self):
+    #     """Extract text with page numbers and section headings."""
+    #     with fitz.open(self.pdf_path) as doc:
+    #         for page_num, page in enumerate(doc):
+    #             page_text = page.get_text("text").strip()
+    #             if page_text:
+    #                 sections = re.findall(r'^\s*(\d+\.\d*\s+.+)$', page_text, re.MULTILINE)  # Enhanced to catch subsections
+    #                 header = f"Page {page_num+1}" + (f" - Sections: {', '.join(sections)}" if sections else "")
+    #                 self.page_contents[page_num] = f"{header}\n{page_text}"
+    #         self.text = "\n".join(self.page_contents.values())
 
     def extract_text(self):
-        """Extract text with page numbers and section headings."""
+        """Extract text and table captions."""
+        table_caption_pattern = r'(Table\s+\d+[\s:].*?)(?=\n\s*\d+\.|\Z)'  # Matches "Table X: Description"
         with fitz.open(self.pdf_path) as doc:
             for page_num, page in enumerate(doc):
                 page_text = page.get_text("text").strip()
                 if page_text:
-                    sections = re.findall(r'^\s*(\d+\.\d*\s+.+)$', page_text, re.MULTILINE)  # Enhanced to catch subsections
+                    # Extract sections
+                    sections = re.findall(r'^\s*(\d+\.\d*\s+.+)$', page_text, re.MULTILINE)
                     header = f"Page {page_num+1}" + (f" - Sections: {', '.join(sections)}" if sections else "")
                     self.page_contents[page_num] = f"{header}\n{page_text}"
-            self.text = "\n".join(self.page_contents.values())
+                    
+                    # Extract table captions
+                    captions = re.findall(table_caption_pattern, page_text, re.DOTALL | re.IGNORECASE)
+                    self.page_table_captions[page_num] = [cap.strip() for cap in captions]
+
+        self.text = "\n".join(self.page_contents.values())
+
+
+    # def extract_tables(self):
+    #     """Extract tables from the PDF using TableExtractor and OcrTableExtractor."""
+    #     # Step 1: Extract table images
+    #     table_extractor = TableExtractor(self.pdf_path, output_dir="D:/rag-chatbot/data")
+    #     table_extractor.run()
+
+    #     # Step 2: Process table images with OCR
+    #     ocr_extractor = OcrTableExtractor(
+    #         image_dir=table_extractor.table_output_dir,
+    #         output_dir="D:/rag-chatbot/data/output"
+    #     )
+    #     ocr_extractor.process_all_tables()
+
+    #     # Step 3: Collect extracted tables from CSVs
+    #     self.tables = []
+    #     output_dir = ocr_extractor.output_dir
+    #     for csv_file in os.listdir(output_dir):
+    #         if csv_file.endswith("_extracted.csv"):
+    #             csv_path = os.path.join(output_dir, csv_file)
+    #             try:
+    #                 # Extract page and table numbers from filename
+    #                 match = re.search(r'page_(\d+)_table_(\d+)_', csv_file)
+    #                 if match:
+    #                     page_num = int(match.group(1)) - 1  # Convert to 0-based index
+    #                     table_num = int(match.group(2)) - 1  # Convert to 0-based index
+                        
+    #                     # Get captions for the page
+    #                     captions = self.page_table_captions.get(page_num, [])
+    #                     caption = (
+    #                         captions[table_num] 
+    #                         if table_num < len(captions) 
+    #                         else f"Table {table_num + 1}"
+    #                     )
+    #                 else:
+    #                     caption = "Unnamed Table"
+
+    #                 # Read table content
+    #                 df = pd.read_csv(csv_path, header=None)
+    #                 table_content = df.to_string(index=False)
+                    
+    #                 # Append with metadata
+    #                 self.tables.append({
+    #                     "page": page_num,
+    #                     "table_id": table_num + 1,  # 1-based for user-facing
+    #                     "caption": caption,
+    #                     "content": table_content
+    #                 })
+    #             except Exception as e:
+    #                 print(f"Error reading table from {csv_path}: {e}")
 
     def extract_tables(self):
-        """Extract tables with page numbers."""
-        with pdfplumber.open(self.pdf_path) as pdf:
-            for page_num, page in enumerate(pdf.pages):
-                tables = page.extract_tables()
-                for table_idx, table in enumerate(tables):
-                    cleaned_table = [row for row in table if any(cell for cell in row if cell)]
-                    if cleaned_table:
-                        table_text = "\n".join(" ".join(str(cell or "") for cell in row) for row in cleaned_table)
-                        self.tables.append({"page": page_num, "table_id": table_idx, "content": table_text})
+        """Extract tables from the PDF using TableExtractor and OcrTableExtractor."""
+        # Step 1: Extract table images
+        table_extractor = TableExtractor(self.pdf_path, output_dir="D:/rag-chatbot/data")
+        table_extractor.run()
+
+        # Step 2: Process table images with OCR to generate JSON outputs
+        ocr_extractor = OcrTableExtractor(
+            image_dir=table_extractor.table_output_dir,
+            output_dir="D:/rag-chatbot/data/output"
+        )
+        ocr_extractor.process_all_tables()
+
+        # Step 3: Collect extracted tables from JSON files
+        self.tables = []
+        output_dir = ocr_extractor.output_dir
+        for json_file in os.listdir(output_dir):
+            if json_file.endswith("_extracted.json"):
+                json_path = os.path.join(output_dir, json_file)
+                try:
+                    # Extract page and table numbers from filename
+                    match = re.search(r'page_(\d+)_table_(\d+)_', json_file)
+                    if match:
+                        page_num = int(match.group(1)) - 1  # 0-based index
+                        table_num = int(match.group(2)) - 1  # 0-based index
+                    else:
+                        table_num = 0
+                        page_num = 0
+
+                    # Get captions for the page
+                    captions = self.page_table_captions.get(page_num, [])
+                    caption = (
+                        captions[table_num] 
+                        if table_num < len(captions) 
+                        else f"Table {table_num + 1}"
+                    )
+
+                    # Read table content from JSON
+                    with open(json_path, "r", encoding="utf-8") as f:
+                        table_data = json.load(f)
+                    # Convert JSON back to DataFrame for a text representation
+                    df = pd.DataFrame(table_data["data"], columns=table_data["columns"])
+                    table_content = df.to_string(index=False)
+                    
+                    self.tables.append({
+                        "page": page_num,
+                        "table_id": table_num + 1,  # 1-based for user-facing
+                        "caption": caption,
+                        "content": table_content
+                    })
+                except Exception as e:
+                    print(f"Error reading table from {json_path}: {e}")
+
 
     def extract_images_and_formulas(self):
         """Extract images and detect formulas."""
@@ -227,7 +344,15 @@ class PDFProcessor:
         self.extract_metadata()
         return {
             "text": self.text,
-            "tables": [table["content"] for table in self.tables],
+            # "tables": [table["content"] for table in self.tables],
+            "tables": [ 
+                {
+                    "id": f"page-{table['page']}-table-{table['table_id']}",
+                    "caption": table["caption"],
+                    "content": table["content"]
+                } 
+                for table in self.tables
+            ],
             "images": self.images,
             "formulas": self.formulas,
             "metadata": self.metadata,
@@ -299,7 +424,8 @@ def split_documents(documents: list[Document]):
     processor = PDFProcessor(config.DATA_PATH)
     processed_data = processor.process_pdf()
     for table in processed_data["tables"]:
-        final_chunks.append(Document(page_content=table, metadata={"page": -1, "type": "table"}))
+        # final_chunks.append(Document(page_content=table, metadata={"page": -1, "type": "table"}))
+        final_chunks.append(Document(page_content=f"Table {table['id']} - {table['caption']}\n{table['content']}",metadata={"page": -1, "type": "table"}))
     for formula in processed_data["formulas"]:
         final_chunks.append(Document(page_content=formula["text"], metadata={"page": formula["page"], "type": "formula"}))
 
@@ -331,3 +457,18 @@ def calculate_chunk_metadata(chunks: list[Document]):
                 break
         chunk.metadata["section"] = current_section
     return chunks
+
+if __name__ == "__main__":
+    processor = PDFProcessor(config.DATA_PATH)
+    result = processor.process_pdf()
+    # print(json.dumps(result, indent=2, default=str))
+
+    # Define output file path
+    output_json_path = os.path.join("D:/rag-chatbot/data", "extracted_data.json")  
+
+    # Save JSON output to a file
+    with open(output_json_path, "w", encoding="utf-8") as json_file:
+        json.dump(result, json_file, indent=2, ensure_ascii=False, default=str)
+
+    print(f"JSON file saved at: {output_json_path}")
+

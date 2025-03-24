@@ -2,7 +2,6 @@ from initialize import initialize_chromadb
 from config import config
 
 def add_to_chroma(chunks, db=None):
-    """Embed and store chunks in ChromaDB."""
     db = db or initialize_chromadb()
     existing_ids = set(db.get(include=[])["ids"])
     print(f"Number of existing documents in DB: {len(existing_ids)}")
