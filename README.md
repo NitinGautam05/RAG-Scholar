@@ -5,8 +5,8 @@ This project is a **Retrieval-Augmented Generation (RAG) chatbot** designed to p
 
 ## 🚀 Features
 - **PDF Processing**: Extracts and preprocesses content from research papers.
-- **Embeddings & Vector Search**: Uses **sentence-transformers/all-MiniLM-L6-v2** for embedding generation and **ChromaDB** for efficient vector storage and retrieval.
-- **LLM Integration**: Powered by **TinyLlama-1.1B-Chat-v1.0** via **Hugging Face API** for contextual answers.
+- **Embeddings & Vector Search**: Uses **Embedding Model** for embedding generation and **ChromaDB** for efficient vector storage and retrieval.
+- **LLM Integration**: Powered by **deepseek** via **Openrouter API** for contextual answers.
 - **Efficient Query Handling**: Retrieves the most relevant document chunks before passing them to the LLM.
 - **Scalable & Modular**: Clean and structured code for easy modifications and improvements.
 
@@ -14,7 +14,7 @@ This project is a **Retrieval-Augmented Generation (RAG) chatbot** designed to p
 - **Python** (Primary Language)
 - **LangChain** (Framework for RAG)
 - **ChromaDB** (Vector Database)
-- **Hugging Face API** (LLM & Embeddings)
+- **Hugging Face and Openrouter API** (Embeddings & LLM)
 - **PyMuPDF** (PDF Processing)
 - **Streamlit** (For deployment)
 
