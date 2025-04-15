@@ -1,24 +1,45 @@
-langchain
-langchain-core
-langchain-community
-chromadb
-google-generativeai
-pymupdf
-python-dotenv
-tiktoken
-# Hugging Face Integration
-langchain-huggingface
-transformers
-huggingface-hub
-# Google Gemini (PaLM) Integration
-langchain-google-genai
-google-generativeai
-# Environment Variable Management
-python-dotenv
-# Machine Learning Utilities
-numpy
-scikit-learn
+# langchain
+# langchain-core
+# langchain-community
+# chromadb
+# google-generativeai
+# pymupdf
+# python-dotenv
+# tiktoken
+# # Hugging Face Integration
+# langchain-huggingface
+# transformers
+# huggingface-hub
+# # Google Gemini (PaLM) Integration
+# langchain-google-genai
+# google-generativeai
+# # Environment Variable Management
+# python-dotenv
+# # Machine Learning Utilities
+# numpy
+# scikit-learn
 
-langchain-chroma
-pdfplumber
-pytesseract
+# langchain-chroma
+# pdfplumber
+# pytesseract
+
+streamlit==1.38.0
+langchain==0.3.0
+langchain-huggingface==0.0.3
+langchain-openai==0.2.0
+langchain-chroma==0.1.4
+chromadb==0.5.5
+pypdf==5.0.1
+pdfplumber==0.11.4
+fitz==0.0.1.dev2
+PyMuPDF==1.24.10
+pdf2image==1.17.0
+pytesseract==0.3.13
+opencv-python==4.10.0.84
+numpy==1.26.4
+pandas==2.2.3
+scikit-learn==1.5.2
+transformers==4.44.2
+torch==2.4.1
+Pillow==10.4.0
+python-dotenv==1.0.1
