@@ -5,10 +5,8 @@ from embed_store import add_to_chroma
 from initialize import initialize_chromadb, initialize_llm
 from config import config
 from chat import ChatHandler
-import camelot
 
 def main():
-    # Process PDF and save structured data
     processor = PDFProcessor(config.DATA_PATH)
     processed_data = processor.process_pdf()
     output_path = os.path.join(os.path.dirname(config.DATA_PATH), "extracted_data.json")
@@ -17,19 +15,14 @@ def main():
         json.dump(processed_data, f, indent=4)
     print(f"PDF processing completed! Data saved at {output_path}")
 
-    # Load, split, and embed documents
     documents = load_documents()
-    chunks = split_documents(documents)
+    chunks = split_documents(documents, processed_data=processed_data) 
     chunks_with_metadata = calculate_chunk_metadata(chunks)
     db = add_to_chroma(chunks_with_metadata)
 
-    # Initialize LLM
     llm = initialize_llm()
-
-
     chat_handler = ChatHandler(db, llm, config)
     chat_handler.run()
 
 if __name__ == "__main__":
     main()
-
