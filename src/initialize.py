@@ -125,6 +125,8 @@ from langchain_chroma import Chroma
 from chromadb.config import Settings
 from config import config
 from langchain_openai import ChatOpenAI
+from langchain.globals import set_llm_cache
+from langchain.cache import InMemoryCache
 
 def initialize_chromadb():
     """Initialize ChromaDB vector store with cosine similarity."""
@@ -146,12 +148,15 @@ def initialize_chromadb():
 def initialize_llm():
     """Initialize the DeepSeek LLM via OpenRouter API."""
     try:
+        set_llm_cache(InMemoryCache())
+
         llm = ChatOpenAI(
             openai_api_base="https://openrouter.ai/api/v1",
             openai_api_key=config.OPENROUTER_API_KEY,
             model_name=config.LLM_MODEL,
             temperature=config.LLM_TEMPERATURE,
-            max_tokens=config.LLM_MAX_TOKENS
+            max_tokens=config.LLM_MAX_TOKENS,
+            streaming=True  # Enable streaming
         )
         return llm
     except Exception as e:
