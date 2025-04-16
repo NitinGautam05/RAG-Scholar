@@ -41,7 +41,7 @@ opencv-python-headless==4.10.0.84
 numpy==1.26.4
 pandas==2.2.3
 scikit-learn==1.5.2
-transformers==4.44.2
+transformers
 torch==2.4.1
 Pillow==10.4.0
 python-dotenv==1.0.1
