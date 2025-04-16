@@ -31,7 +31,7 @@ langchain-huggingface==0.1.0
 langchain-chroma==0.1.4
 langchain-community==0.3.0
 chromadb
-pydantic
+pydantic==2.9.2
 pypdf==5.0.1
 pdfplumber==0.11.4
 fitz==0.0.1.dev2
