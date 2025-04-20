@@ -88,7 +88,19 @@ class ChatHandler:
         """Generate a response using the RAG pipeline."""
 
         try:
-            docs = self.db.similarity_search(query, k=self.config.TOP_K)
+            # Check if db is initialized
+            if not self.db:
+                print("[ERROR] Database not initialized")
+                return "Database not initialized properly. Please restart the application."
+                
+            print(f"[DEBUG] DB info: {type(self.db)}")
+
+            try:
+                docs = self.db.similarity_search(query, k=self.config.TOP_K)
+            except Exception as e:
+                print(f"[ERROR] Similarity search failed: {e}")
+                return "I'm sorry, I couldn't retrieve relevant information. Please try again."
+            
             unique_docs = list({doc.page_content: doc for doc in docs}.values())
             context = "\n\n".join(doc.page_content for doc in unique_docs[:self.config.TOP_K])
             history_str = self.format_conversation_history()
@@ -107,9 +119,11 @@ class ChatHandler:
             return response.content.strip()
         
         except Exception as e:
-            print(f"[ERROR] Error generating response: {e}")
+            import traceback
+            print(f"[ERROR] Error generating response: {str(e)}")
+            print(f"[ERROR] Traceback: {traceback.format_exc()}")
             return "I'm sorry, I couldn't process your request. Please try again."
-
+        
     def update_history(self, query, response):
         """Update conversation history."""
         self.conversation_history.append((query, response))

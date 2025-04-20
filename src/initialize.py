@@ -126,7 +126,8 @@ from chromadb.config import Settings
 from config import config
 from langchain_openai import ChatOpenAI
 from langchain.globals import set_llm_cache
-from langchain.cache import InMemoryCache
+# from langchain.cache import InMemoryCache
+from langchain_community.cache import InMemoryCache
 
 def initialize_chromadb():
     """Initialize ChromaDB vector store with cosine similarity."""
