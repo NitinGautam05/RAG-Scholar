@@ -56,13 +56,34 @@ import shutil
 import os
 import time
 
+# def add_to_chroma(chunks, db=None):
+#     db = db or initialize_chromadb()
+#     existing_ids = set(db.get(include=[])["ids"])
+#     new_chunks = [chunk for chunk in chunks if chunk.metadata["id"] not in existing_ids]
+#     if new_chunks:
+#         db.add_documents(new_chunks, ids=[chunk.metadata["id"] for chunk in new_chunks])
+#     return db
+
 def add_to_chroma(chunks, db=None):
+    print("[DEBUG] Inside add_to_chroma")
     db = db or initialize_chromadb()
-    existing_ids = set(db.get(include=[])["ids"])
+    
+    try:
+        print("[DEBUG] Attempting to get existing documents")
+        existing_ids = set(db.get(include=[])["ids"])  # ❗ This line triggers "no such table"
+    except Exception as e:
+        print(f"[ERROR] ChromaDB get() failed: {e}")
+        raise
+
     new_chunks = [chunk for chunk in chunks if chunk.metadata["id"] not in existing_ids]
     if new_chunks:
+        print(f"[DEBUG] Adding {len(new_chunks)} new chunks")
         db.add_documents(new_chunks, ids=[chunk.metadata["id"] for chunk in new_chunks])
+    else:
+        print("[DEBUG] No new chunks to add")
+
     return db
+
 
 def robust_delete_chroma_db():
     db_path = config.CHROMADB_PATH
