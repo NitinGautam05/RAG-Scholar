@@ -117,7 +117,7 @@
 #     except Exception as e:
 #         raise RuntimeError(f"Failed to initialize LLM: {e}")
 
-
+# ********************************************
 
 import chromadb
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -130,6 +130,7 @@ from langchain.cache import InMemoryCache
 
 def initialize_chromadb():
     """Initialize ChromaDB vector store with cosine similarity."""
+    print("[DEBUG] Initializing ChromaDB")
     try:
         embedding_function = HuggingFaceEmbeddings(
             model_name=config.EMBEDDING_MODEL,
@@ -146,6 +147,7 @@ def initialize_chromadb():
         raise RuntimeError(f"Failed to initialize ChromaDB: {e}")
 
 def initialize_llm():
+    print("[DEBUG] Initializing LLM")
     """Initialize the DeepSeek LLM via OpenRouter API."""
     try:
         set_llm_cache(InMemoryCache())

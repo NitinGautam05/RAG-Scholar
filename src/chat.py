@@ -84,24 +84,31 @@ class ChatHandler:
         return formatted
 
     def generate_response(self, query):
+        print("[DEBUG] Generating response for:", query)
         """Generate a response using the RAG pipeline."""
-        docs = self.db.similarity_search(query, k=self.config.TOP_K)
-        unique_docs = list({doc.page_content: doc for doc in docs}.values())
-        context = "\n\n".join(doc.page_content for doc in unique_docs[:self.config.TOP_K])
-        history_str = self.format_conversation_history()
-        prompt = (
-            "<|user|>\n"
-            "You are a conversational assistant for research papers. "
-            "Answer using only the provided context, accurately and concisely. "
-            "Use a natural tone and refer to previous exchanges if relevant. "
-            "If the context is unclear, say so and avoid guessing.\n"
-            f"{history_str}"
-            f"Context:\n{context}\n"
-            f"Question: {query}\n"
-            "<|assistant|>\n"
-        )
-        response = self.llm.invoke(prompt)
-        return response.content.strip()
+
+        try:
+            docs = self.db.similarity_search(query, k=self.config.TOP_K)
+            unique_docs = list({doc.page_content: doc for doc in docs}.values())
+            context = "\n\n".join(doc.page_content for doc in unique_docs[:self.config.TOP_K])
+            history_str = self.format_conversation_history()
+            prompt = (
+                "<|user|>\n"
+                "You are a conversational assistant for research papers. "
+                "Answer using only the provided context, accurately and concisely. "
+                "Use a natural tone and refer to previous exchanges if relevant. "
+                "If the context is unclear, say so and avoid guessing.\n"
+                f"{history_str}"
+                f"Context:\n{context}\n"
+                f"Question: {query}\n"
+                "<|assistant|>\n"
+            )
+            response = self.llm.invoke(prompt)
+            return response.content.strip()
+        
+        except Exception as e:
+            print(f"[ERROR] Error generating response: {e}")
+            return "I'm sorry, I couldn't process your request. Please try again."
 
     def update_history(self, query, response):
         """Update conversation history."""
