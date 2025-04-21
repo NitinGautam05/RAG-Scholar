@@ -97,9 +97,12 @@ class ChatHandler:
 
             try:
                 docs = self.db.similarity_search(query, k=self.config.TOP_K)
+                print(f"[DEBUG] Search successful, found {len(docs)} documents")
             except Exception as e:
-                print(f"[ERROR] Similarity search failed: {e}")
-                return "I'm sorry, I couldn't retrieve relevant information. Please try again."
+                import traceback
+                print(f"[ERROR] Similarity search failed: {str(e)}")
+                print(f"[TRACE] {traceback.format_exc()}")
+                return "Database search failed. Please check the logs for details."
             
             unique_docs = list({doc.page_content: doc for doc in docs}.values())
             context = "\n\n".join(doc.page_content for doc in unique_docs[:self.config.TOP_K])
@@ -115,7 +118,17 @@ class ChatHandler:
                 f"Question: {query}\n"
                 "<|assistant|>\n"
             )
-            response = self.llm.invoke(prompt)
+            print("[DEBUG] About to invoke LLM")
+            try:
+                response = self.llm.invoke(prompt)
+                print("[DEBUG] LLM invocation successful")
+
+            except Exception as e:
+                import traceback
+                print(f"[ERROR] LLM invocation failed: {str(e)}")
+                print(f"[TRACE] {traceback.format_exc()}")
+                return "Failed to generate a response. Please check the LLM connection."
+            
             return response.content.strip()
         
         except Exception as e:
