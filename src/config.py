@@ -27,15 +27,44 @@
 
 # config = Config()
 
+# import os
+# from dotenv import load_dotenv
+
+# load_dotenv()
+
+# class Config:
+#     # API Keys
+#     HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACEHUB_ACCESS_TOKEN")
+#     OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+    
+#     # Paths (relative for cloud compatibility)
+#     CHROMADB_PATH = os.getenv("CHROMADB_PATH", "./chromadb")
+#     DATA_PATH = None  # Will be set dynamically via file upload
+    
+#     # Embedding and chunking settings
+#     EMBEDDING_MODEL = "BAAI/bge-large-en-v1.5"
+#     CHUNK_SIZE = 1500
+#     CHUNK_OVERLAP = 300
+#     BATCH_SIZE = 5
+#     TOP_K = 5
+    
+#     # LLM settings
+#     LLM_MODEL = "deepseek/deepseek-r1-distill-llama-70b:free"
+#     LLM_TEMPERATURE = 0.7
+#     LLM_MAX_TOKENS = 1000
+
+# config = Config()
+
 import os
 from dotenv import load_dotenv
 
+# Load environment variables from .env file (for local development)
 load_dotenv()
 
 class Config:
-    # API Keys
-    HUGGINGFACE_API_KEY = os.getenv("HUGGINGFACEHUB_ACCESS_TOKEN")
-    OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+    # API Keys will be set dynamically
+    HUGGINGFACE_API_KEY = None
+    OPENROUTER_API_KEY = None
     
     # Paths (relative for cloud compatibility)
     CHROMADB_PATH = os.getenv("CHROMADB_PATH", "./chromadb")
@@ -52,5 +81,12 @@ class Config:
     LLM_MODEL = "deepseek/deepseek-r1-distill-llama-70b:free"
     LLM_TEMPERATURE = 0.7
     LLM_MAX_TOKENS = 1000
+    
+    def set_api_keys(self, huggingface_api_key=None, openrouter_api_key=None):
+        """Set API keys dynamically"""
+        if huggingface_api_key:
+            self.HUGGINGFACE_API_KEY = huggingface_api_key
+        if openrouter_api_key:
+            self.OPENROUTER_API_KEY = openrouter_api_key
 
 config = Config()
