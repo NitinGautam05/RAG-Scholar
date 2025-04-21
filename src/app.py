@@ -335,17 +335,13 @@ from chat import ChatHandler
 st.set_page_config(page_title="RAG PDF Chatbot", layout="wide")
 st.title("📄💬 RAG Chatbot for Research Papers")
 
-# Access API keys from Streamlit secrets and set them in config
-if "huggingface" in st.secrets and "api_key" in st.secrets["huggingface"]:
-    huggingface_api_key = st.secrets["huggingface"]["api_key"]
-else:
-    huggingface_api_key = None
+# Access API keys from Streamlit secrets using flat structure and set them in config
+huggingface_api_key = st.secrets.get("HUGGINGFACEHUB_ACCESS_TOKEN")
+if not huggingface_api_key:
     st.warning("⚠️ HuggingFace API key not found in secrets")
 
-if "openrouter" in st.secrets and "api_key" in st.secrets["openrouter"]:
-    openrouter_api_key = st.secrets["openrouter"]["api_key"]
-else:
-    openrouter_api_key = None
+openrouter_api_key = st.secrets.get("OPENROUTER_API_KEY")
+if not openrouter_api_key:
     st.warning("⚠️ OpenRouter API key not found in secrets")
 
 # Set the API keys in the config
