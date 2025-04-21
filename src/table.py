@@ -146,10 +146,12 @@ import torch
 from config import Config
 from transformers import AutoImageProcessor, TableTransformerForObjectDetection
 from PIL import Image
+from config import config
 
 class TableExtractor:
     def __init__(self, pdf_path=Config.DATA_PATH, output_dir="./data"):
         self.pdf_path = pdf_path
+        os.environ["HUGGINGFACE_TOKEN"] = config.HUGGINGFACE_API_KEY
         self.output_dir = output_dir
         self.table_output_dir = os.path.join(output_dir, "tables")
         os.makedirs(self.table_output_dir, exist_ok=True)
